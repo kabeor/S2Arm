@@ -5637,8 +5637,10 @@ static void c204_arm(const char *dir, int arm) {
                 CHECK(bad == 0, "C204 臂 N 第二条管线输出不符 %d 槽", bad);
                 C204_EQ("第二条管线（同一布局）：向驱动新分的组（取第一条管线放回的）", s1.nw - s0.nw, 0); C204_EQ("第二条管线：复用", s1.reuse - s0.reuse, 70);
                 C204_EQ("两条管线共用一个表项", nvn_vk_dbg_dset_stat(6), 1);
-                nvn_gpu_layout_ent cec[1]; cec[0] = ce[0]; cec[0].count = 2;   // 结构不同：binding 0 有 2 项
-                nvn_gpu_layout clc = cl; clc.ent = cec; clc.nent = 1;
+                // 结构不同：多一个着色器不用的 binding 1。不把着色器用到的 binding 0 改成 2 项：那样每段只写第 0 项，
+                //   新版校验层（1.4.341）把没写的第 1 项算作派发时访问到，报 VUID-vkCmdDispatch-None-08114。
+                nvn_gpu_layout_ent cec[2]; cec[0] = ce[0]; cec[1] = ce[0]; cec[1].binding = 1;
+                nvn_gpu_layout clc = cl; clc.ent = cec; clc.nent = 2;
                 nvn_gpu_shader shc = NULL;
                 nvn_gpu_pipe cpc = mk_cpipe(dir, "comp.comp", &clc, &shc);
                 CHECK(cpc != NULL, "C204 臂 N 第三条管线为空");
