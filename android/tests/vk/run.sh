@@ -736,7 +736,8 @@ fi
 bad=$(grep -cE "Validation Error|VUID-" "$out/log" || true)
 if [ "$bad" -ne 0 ]; then
     echo "【红】validation 报错 $bad 条：" >&2
-    grep -E "Validation Error|VUID-" "$out/log" | head -20 >&2
+    # 带上下文打：校验层把对象 / 组号 / binding 写在 Validation Error 的下一行，只打匹配行定不了因（CI 日志只留这里打的）
+    grep -B2 -A3 -E "Validation Error" "$out/log" | head -60 >&2
     exit 1
 fi
 
